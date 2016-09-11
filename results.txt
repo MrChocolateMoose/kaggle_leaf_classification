@@ -1,0 +1,20 @@
+Best: 0.928283 using {'neurons': 192}
+0.907071 (0.013627) with: {'neurons': 128}
+0.928283 (0.012453) with: {'neurons': 192}
+0.924242 (0.014845) with: {'neurons': 256}
+
+===
+192 neurons
+loss: 0.0585 - acc: 0.9828 ==> KAGGLE SCORE 0.19379
+loss: 0.0880 - acc: 0.9729 - val_loss: 14.6194 - val_acc: 0.0061
+===
+
+===
+192 neruons, additional dropout in seperate models
+loss: 0.1225 - acc: 0.9586 ==> KAGGLE SCORE: 0.19991
+===
+
+===
+192 neruons, no dropout
+loss: 0.0044 - acc: 0.9990 ==> KAGGLE SCORE: 0.37978
+===
