@@ -18,3 +18,39 @@ loss: 0.1225 - acc: 0.9586 ==> KAGGLE SCORE: 0.19991
 192 neruons, no dropout
 loss: 0.0044 - acc: 0.9990 ==> KAGGLE SCORE: 0.37978
 ===
+
+
+
+
+
+
+
+
+Best: 0.981818 using {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 384, 'joint_model_neurons': 384}
+0.977778 (0.009367) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 192, 'joint_model_neurons': 384}
+0.976768 (0.011780) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 256, 'joint_model_neurons': 384}
+0.977778 (0.010400) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 384, 'joint_model_neurons': 384}
+0.979798 (0.008451) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 192, 'joint_model_neurons': 512}
+0.981818 (0.006851) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 256, 'joint_model_neurons': 512}
+0.979798 (0.008451) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 384, 'joint_model_neurons': 512}
+0.978788 (0.011693) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 192, 'joint_model_neurons': 768}
+0.979798 (0.011517) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 256, 'joint_model_neurons': 768}
+0.975758 (0.008081) with: {'dropout_prob': 0.20000000000000001, 'split_model_neurons': 384, 'joint_model_neurons': 768}
+0.968687 (0.008689) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 192, 'joint_model_neurons': 384}
+0.974747 (0.007142) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 256, 'joint_model_neurons': 384}
+0.981818 (0.006851) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 384, 'joint_model_neurons': 384}
+0.970707 (0.008689) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 192, 'joint_model_neurons': 512}
+0.976768 (0.010400) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 256, 'joint_model_neurons': 512}
+0.977778 (0.006851) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 384, 'joint_model_neurons': 512}
+0.969697 (0.008451) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 192, 'joint_model_neurons': 768}
+0.974747 (0.013170) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 256, 'joint_model_neurons': 768}
+0.976768 (0.009367) with: {'dropout_prob': 0.30000000000000004, 'split_model_neurons': 384, 'joint_model_neurons': 768}
+0.952525 (0.013401) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 192, 'joint_model_neurons': 384}
+0.961616 (0.012205) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 256, 'joint_model_neurons': 384}
+0.970707 (0.006700) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 384, 'joint_model_neurons': 384}
+0.960606 (0.011248) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 192, 'joint_model_neurons': 512}
+0.964646 (0.014285) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 256, 'joint_model_neurons': 512}
+0.969697 (0.009583) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 384, 'joint_model_neurons': 512}
+0.962626 (0.007559) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 192, 'joint_model_neurons': 768}
+0.957576 (0.013014) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 256, 'joint_model_neurons': 768}
+0.965657 (0.015118) with: {'dropout_prob': 0.40000000000000002, 'split_model_neurons': 384, 'joint_model_neurons': 768}
