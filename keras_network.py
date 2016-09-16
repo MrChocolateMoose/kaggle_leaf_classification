@@ -1,4 +1,4 @@
-# Import libraries
+import os.path
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import LabelEncoder
@@ -8,13 +8,22 @@ from keras.optimizers import SGD, Adam, RMSprop
 from keras.utils import np_utils
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import train_test_split
+from matplotlib import pyplot as plt
+from pandas.util.testing import assert_frame_equal
 
 from keras.callbacks import EarlyStopping
 
 from keras_classifier import *
 
+
 print("Load Training Data...")
 train = pd.read_csv("data/train.csv")
+
+if os.path.isfile("data/mutated_train.csv"):
+    mutated_train =  pd.read_csv("data/mutated_train.csv")
+
+    train = pd.concat([train, mutated_train])
+
 X = train.drop(['id', 'species'], axis=1).values
 le = LabelEncoder().fit(train['species'])
 Y = le.transform(train['species'])
@@ -26,6 +35,7 @@ scaler = StandardScaler().fit(X)
 
 seed = 1337
 X_train, X_valid, Y_train, Y_valid = train_test_split(X, Y, test_size=0.10, random_state=seed)
+
 
 print("Load Test Data...")
 test = pd.read_csv("data/test.csv")
@@ -58,31 +68,70 @@ X_margin_test = X_test[:, input_dim*0:input_dim*1]
 X_shape_test = X_test[:, input_dim:input_dim*2]
 X_texture_test = X_test[:, input_dim*2:input_dim*3]
 
-def create_model(split_model_neurons, joint_model_neurons, dropout_prob):
+
+def show_margin(index):
+    margin_mat = X_margin_train[index,:].reshape(1,64)
+
+    plt.imshow(margin_mat, interpolation='nearest')
+    plt.show()
+
+
+def show_shape(index):
+    shape_mat = X_shape_train[index,:].reshape(1,64)
+
+    plt.imshow(shape_mat, interpolation='nearest')
+    plt.show()
+
+def show_all(index):
+    all_mat = X_train[index,:].reshape(3,64)
+
+    plt.imshow(all_mat, interpolation='nearest')
+    plt.show()
+
+
+#for index in range(X_margin_train.shape[0]):
+    #show_margin(index)
+    #show_shape(index)
+    #show_all(index)
+
+
+def create_model(level_1_neuron_count, level_2_neuron_count, level_3_neuron_count, dropout_prob, activation, init_weights):
 
     print("Creating the model...")
-    print("Neurons: %d" % split_model_neurons)
+    print("Neuron Level 1 Count: %d" % level_1_neuron_count)
+    print("Neuron Level 2 Count: %d" % level_2_neuron_count)
+    print("Neuron Level 3 Count: %d" % level_3_neuron_count)
     print("Dropout Probability: %f" % dropout_prob)
+    print("Activation Function: %s" % activation)
+    print("Weight Initialization Scheme: %s" % init_weights)
 
     margin_model = Sequential()
-    margin_model.add(Dense(output_dim=split_model_neurons, input_dim=input_dim))
+    margin_model.add(Dense(output_dim=level_1_neuron_count, input_dim=input_dim, init=init_weights))
     margin_model.add(Dropout(dropout_prob))
 
     shape_model = Sequential()
-    shape_model.add(Dense(output_dim=split_model_neurons, input_dim=input_dim))
+    shape_model.add(Dense(output_dim=level_1_neuron_count, input_dim=input_dim, init=init_weights))
     shape_model.add(Dropout(dropout_prob))
 
     texture_model = Sequential()
-    texture_model.add(Dense(output_dim=split_model_neurons, input_dim=input_dim))
+    texture_model.add(Dense(output_dim=level_1_neuron_count, input_dim=input_dim, init=init_weights))
     texture_model.add(Dropout(dropout_prob))
 
     model = Sequential()
     model.add(Merge([margin_model, shape_model, texture_model], mode='concat', concat_axis=1))
-    model.add(Activation('sigmoid'))
-    model.add(Dropout(dropout_prob))
-    model.add(Dense(joint_model_neurons))
-    model.add(Activation('sigmoid'))
-    model.add(Dense(99))
+
+    if level_2_neuron_count != 0:
+        model.add(Activation(activation))
+        model.add(Dropout(dropout_prob))
+        model.add(Dense(level_2_neuron_count, init=init_weights))
+
+    if level_3_neuron_count != 0:
+        model.add(Activation(activation))
+        model.add(Dropout(dropout_prob))
+        model.add(Dense(level_3_neuron_count, init=init_weights))
+
+    model.add(Activation(activation))
+    model.add(Dense(99, init=init_weights))
     model.add(Activation('softmax'))
     print("Compiling model")
     model.compile(optimizer='rmsprop',
@@ -100,16 +149,28 @@ def margin_shape_texture_split(X):
 def grid_search_cv():
     model = KerasClassifier(build_fn=create_model, X_transform_fn=margin_shape_texture_split, nb_epoch=75, batch_size=128, verbose=1)
 
-    # define the grid search parameters
-    #neurons = [128, 192, 256]
-    param_grid = [
+    old_param_grid = [
         {
-            "split_model_neurons" : [192, 256, 384],
-            "joint_model_neurons" : [384, 512, 768],
-            "dropout_prob" : np.linspace(0.2, 0.4, num=3)
+            "level_1_neuron_count" : [192, 256, 384],
+            "level_2_neuron_count" : [384, 512, 768],
+            "level_3_neuron_count": [196],
+            "dropout_prob" : np.linspace(0.2, 0.4, num=3),
+            "init_weights" :  ['uniform', 'lecun_uniform', 'normal', 'zero', 'glorot_normal', 'glorot_uniform', 'he_normal','he_uniform']
         }
     ]
-    grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=1, cv=5)
+
+    param_grid = [
+        {
+            "level_1_neuron_count": [384],
+            "level_2_neuron_count": [384],
+            "level_3_neuron_count": [0, 128, 196, 256],
+            "dropout_prob": [0.3],
+            "activation" : ["tanh"],
+            "init_weights" :  ['he_uniform']
+        }
+    ]
+
+    grid = GridSearchCV(estimator=model, param_grid=param_grid, n_jobs=1, cv=2)
     grid_result = grid.fit(X_train, Y_train)
     # summarize results
     print("Best: %f using %s" % (grid_result.best_score_, grid_result.best_params_))
@@ -117,7 +178,7 @@ def grid_search_cv():
         print("%f (%f) with: %r" % (scores.mean(), scores.std(), params))
 
 def run_kaggle():
-    model = create_model(split_model_neurons=384, joint_model_neurons=384, dropout_prob=0.3)
+    model = create_model(level_1_neuron_count=384*2, level_2_neuron_count=384*2, level_3_neuron_count=196*2, dropout_prob=0.3, activation="tanh", init_weights="he_uniform")
 
     earlyStopping = EarlyStopping(monitor='val_loss', patience=10, verbose=0, mode='auto')
 
@@ -137,5 +198,42 @@ def run_kaggle():
     submission.to_csv('data/submission_NN.csv')
 
 
+MUTATE_RATE = 0.25
+def mutate(x):
+
+    should_mutate_vec = np.random.rand(x.size) < MUTATE_RATE
+    scale_factor_x_vec = np.abs(x) * 0.25
+    mutated_x_vec = x + scale_factor_x_vec * (np.random.rand(x.size) - 0.5)
+
+    new_x =  np.where(should_mutate_vec, mutated_x_vec, x)
+
+    return new_x
+
+
+def mutate_df(orig_df):
+    mutated_df = orig_df.copy(deep=True)
+
+    mutated_df.iloc[:, 2:] = mutated_df.iloc[:, 2:].apply(mutate, axis=1)
+
+    #assert_frame_equal(mutated_df, orig_df)
+
+    return mutated_df
+
+
+def build_mutated_dfs(orig_df, count):
+    mutated_df_list = []
+    for i in range(count):
+        mutated_df_list.append(mutate_df(orig_df))
+
+    mutated_dfs = pd.concat(mutated_df_list)
+
+    return mutated_dfs
+
+def create_mutated_train_csv():
+    mutated_dfs = build_mutated_dfs(train,100)
+
+    mutated_dfs.to_csv('data/mutated_train.csv', index=False)
+
 run_kaggle()
+#create_mutated_train_csv()
 #grid_search_cv()
