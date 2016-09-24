@@ -9,20 +9,13 @@ from keras.utils import np_utils
 from sklearn.grid_search import GridSearchCV
 from sklearn.cross_validation import train_test_split
 from matplotlib import pyplot as plt
-from pandas.util.testing import assert_frame_equal
 
 from keras.callbacks import EarlyStopping
 
 from keras_classifier import *
+from data_generator import get_training_data
 
-
-print("Load Training Data...")
-train = pd.read_csv("data/train.csv")
-
-if os.path.isfile("data/mutated_train.csv"):
-    mutated_train =  pd.read_csv("data/mutated_train.csv")
-
-    train = pd.concat([train, mutated_train])
+train = get_training_data(mergeMutated=True)
 
 X = train.drop(['id', 'species'], axis=1).values
 le = LabelEncoder().fit(train['species'])
@@ -67,33 +60,6 @@ X_texture_valid = X_valid[:, input_dim*2:input_dim*3]
 X_margin_test = X_test[:, input_dim*0:input_dim*1]
 X_shape_test = X_test[:, input_dim:input_dim*2]
 X_texture_test = X_test[:, input_dim*2:input_dim*3]
-
-
-def show_margin(index):
-    margin_mat = X_margin_train[index,:].reshape(1,64)
-
-    plt.imshow(margin_mat, interpolation='nearest')
-    plt.show()
-
-
-def show_shape(index):
-    shape_mat = X_shape_train[index,:].reshape(1,64)
-
-    plt.imshow(shape_mat, interpolation='nearest')
-    plt.show()
-
-def show_all(index):
-    all_mat = X_train[index,:].reshape(3,64)
-
-    plt.imshow(all_mat, interpolation='nearest')
-    plt.show()
-
-
-#for index in range(X_margin_train.shape[0]):
-    #show_margin(index)
-    #show_shape(index)
-    #show_all(index)
-
 
 def create_model(level_1_neuron_count, level_2_neuron_count, level_3_neuron_count, dropout_prob, activation, init_weights):
 
@@ -178,7 +144,7 @@ def grid_search_cv():
         print("%f (%f) with: %r" % (scores.mean(), scores.std(), params))
 
 def run_kaggle():
-    model = create_model(level_1_neuron_count=384*2, level_2_neuron_count=384*2, level_3_neuron_count=196*2, dropout_prob=0.3, activation="tanh", init_weights="he_uniform")
+    model = create_model(level_1_neuron_count=384*2.5, level_2_neuron_count=384*2.5, level_3_neuron_count=196*2.5, dropout_prob=0.3, activation="tanh", init_weights="he_uniform")
 
     earlyStopping = EarlyStopping(monitor='val_loss', patience=10, verbose=0, mode='auto')
 
@@ -197,43 +163,8 @@ def run_kaggle():
     submission = pd.DataFrame(Y_test, index=test_id, columns=le.classes_)
     submission.to_csv('data/submission_NN.csv')
 
-
-MUTATE_RATE = 0.25
-def mutate(x):
-
-    should_mutate_vec = np.random.rand(x.size) < MUTATE_RATE
-    scale_factor_x_vec = np.abs(x) * 0.25
-    mutated_x_vec = x + scale_factor_x_vec * (np.random.rand(x.size) - 0.5)
-
-    new_x =  np.where(should_mutate_vec, mutated_x_vec, x)
-
-    return new_x
+if __name__ == '__main__':
+    run_kaggle()
+    # grid_search_cv()
 
 
-def mutate_df(orig_df):
-    mutated_df = orig_df.copy(deep=True)
-
-    mutated_df.iloc[:, 2:] = mutated_df.iloc[:, 2:].apply(mutate, axis=1)
-
-    #assert_frame_equal(mutated_df, orig_df)
-
-    return mutated_df
-
-
-def build_mutated_dfs(orig_df, count):
-    mutated_df_list = []
-    for i in range(count):
-        mutated_df_list.append(mutate_df(orig_df))
-
-    mutated_dfs = pd.concat(mutated_df_list)
-
-    return mutated_dfs
-
-def create_mutated_train_csv():
-    mutated_dfs = build_mutated_dfs(train,100)
-
-    mutated_dfs.to_csv('data/mutated_train.csv', index=False)
-
-run_kaggle()
-#create_mutated_train_csv()
-#grid_search_cv()

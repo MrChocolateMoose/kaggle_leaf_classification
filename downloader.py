@@ -1,4 +1,3 @@
-from tqdm import tqdm
 import requests
 import os.path
 import getpass
@@ -71,5 +70,5 @@ def ensure_data():
         else:
             print("md5 matches for: " + data_file)
 
-ensure_data()
-
+if __name__ == '__main__':
+    ensure_data()
